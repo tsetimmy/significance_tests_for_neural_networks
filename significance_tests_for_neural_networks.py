@@ -25,13 +25,17 @@ def mse(y_pred, y_true):
     loss = tf.keras.losses.mean_squared_error(y_true, y_pred)
     return tf.reduce_mean(loss)
 
+def get_error(x, y):
+    pred = ann(x)
+    loss = mse(pred, y)
+    return loss
+
 optimizer = tf.keras.optimizers.Adam()#Pretty sure default parameters were used.
             
 def run_optimization(x, y):
     with tf.GradientTape() as g:
         pred = ann(x)
         loss = mse(pred, y)
-        print(loss)
 
     trainable_variables = ann.trainable_variables
     gradients = g.gradient(loss, trainable_variables)
@@ -69,9 +73,21 @@ X_test, Y_test = generate_data(n_test, loc_noise, scale_noise)
 train_data = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
 train_data = train_data.repeat().batch(batch_size)
 
+prev_validation_error = np.inf
+epoch = 0
+early_stopping = 0
 for step, (batch_X, batch_Y) in enumerate(train_data.take(max_steps), 1):
     run_optimization(batch_X, batch_Y)
 
     if step % int(n_train / batch_size) == 0:
-        print('here!')
+        epoch += 1
+        validation_error = get_error(X_validation, Y_validation).numpy()
+        print('Epoch: %i, step: %i, validation error: %f' % (epoch, step, validation_error))
+        early_stopping = early_stopping + 1 if prev_validation_error - validation_error <= 1e-5 else 0
+        if early_stopping == 5:
+            print('Validation error did not fall below 1e-5 for 5 consecutive epochs; applying early stopping.')
+            break
+        prev_validation_error = validation_error
+print('Done training.')
+print('Test error: %f.' % get_error(X_test, Y_test).numpy())
 #https://github.com/aymericdamien/TensorFlow-Examples/blob/master/tensorflow_v2/notebooks/3_NeuralNetworks/neural_network.ipynb
