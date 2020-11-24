@@ -3,10 +3,23 @@ import tensorflow as tf
 from tensorflow.keras import Model, layers
 tf.keras.backend.set_floatx('float64')
 
+import argparse
 import sys
 import os
 if sys.platform == 'darwin':
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'#Hacky workaround for an error thrown on macOS.
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--loc_noise', type=float, default=0.)
+parser.add_argument('--scale_noise', type=float, default=.01)
+parser.add_argument('--n_train', type=int, default=100000)
+parser.add_argument('--n_validation', type=int, default=10000)
+parser.add_argument('--n_test', type=int, default=10000)
+parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--max_epochs', type=int, default=150)
+args = parser.parse_args()
+print(sys.argv)
+print(args)
 
 class ANN(Model):
     def __init__(self, Y_dim):
@@ -55,14 +68,14 @@ def generate_data(n, loc, scale):
     assert len(Y.shape) == 2
     return X, Y
 
-loc_noise = 0.
-scale_noise = .01
-n_train = 100000
-n_validation = 10000
-n_test = 10000
+loc_noise = args.loc_noise
+scale_noise  = args.scale_noise
+n_train  = args.n_train
+n_validation  = args.n_validation
+n_test  = args.n_test
 
-batch_size = 32
-max_epochs = 150
+batch_size = args.batch_size
+max_epochs = args.max_epochs
 
 max_steps = int(n_train / batch_size) * max_epochs
 
@@ -91,3 +104,9 @@ for step, (batch_X, batch_Y) in enumerate(train_data.take(max_steps), 1):
 print('Done training.')
 print('Test error: %f.' % get_error(X_test, Y_test).numpy())
 #https://github.com/aymericdamien/TensorFlow-Examples/blob/master/tensorflow_v2/notebooks/3_NeuralNetworks/neural_network.ipynb
+
+
+
+
+
+print('----------------------')
