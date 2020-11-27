@@ -110,6 +110,7 @@ with tf.GradientTape() as g:
     g.watch(input_var)
     pred = ann(input_var)
 df_dx = g.gradient(pred, input_var)
-test_statistic = df_dx.numpy().mean(axis=0)
-print('Test statistic: %f.' % test_statistic)
+test_statistic = np.square(df_dx.numpy()).mean(axis=0)
+print('Test statistic:')
+print(test_statistic)
 #https://github.com/aymericdamien/TensorFlow-Examples/blob/master/tensorflow_v2/notebooks/3_NeuralNetworks/neural_network.ipynb
