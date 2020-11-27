@@ -103,10 +103,13 @@ for step, (batch_X, batch_Y) in enumerate(train_data.take(max_steps), 1):
         prev_validation_error = validation_error
 print('Done training.')
 print('Test error: %f.' % get_error(X_test, Y_test).numpy())
+
+# Get gradients w.r.t to each input variable
+input_var = tf.Variable(X_train)
+with tf.GradientTape() as g:
+    g.watch(input_var)
+    pred = ann(input_var)
+df_dx = g.gradient(pred, input_var)
+test_statistic = df_dx.numpy().mean(axis=0)
+print('Test statistic: %f.' % test_statistic)
 #https://github.com/aymericdamien/TensorFlow-Examples/blob/master/tensorflow_v2/notebooks/3_NeuralNetworks/neural_network.ipynb
-
-
-
-
-
-print('----------------------')
