@@ -69,10 +69,10 @@ def generate_data(n, loc, scale):
     return X, Y
 
 loc_noise = args.loc_noise
-scale_noise  = args.scale_noise
-n_train  = args.n_train
-n_validation  = args.n_validation
-n_test  = args.n_test
+scale_noise = args.scale_noise
+n_train = args.n_train
+n_validation = args.n_validation
+n_test = args.n_test
 
 batch_size = args.batch_size
 max_epochs = args.max_epochs
