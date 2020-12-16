@@ -2,7 +2,7 @@ import numpy as np
 from itertools import product
 import uuid
 import pickle
-import tqdm
+import time
 
 def partial_deriv_combs(result, target_length, target, curr_list, curr):
     if curr > target:
@@ -29,10 +29,15 @@ def limiting_distribution(d, j, N):
     ncols = np.power(N, d)
     matrix = np.zeros([nrows, ncols])
     idx = -1
-    for i in tqdm(product(range(2), repeat=d)):
-        for n in tqdm(product(range(N), repeat=d)):
+    start_time = time.time()
+    for i in product(range(2), repeat=d):
+        for n in product(range(N), repeat=d):
             idx += 1
 
+            if idx % 1000 == 0:
+                print('idx:', idx, 'elapsed time:', time.time() - start_time)
+
+            '''
             if idx == 4500:
                 start = time.time()
 
@@ -40,6 +45,7 @@ def limiting_distribution(d, j, N):
                 end = time.time()
                 print(end - start)
                 exit()
+            '''
 
             if n[j] == 0.:
                 continue
