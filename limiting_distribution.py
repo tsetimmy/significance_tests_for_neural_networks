@@ -29,6 +29,8 @@ def limiting_distribution(d, j, N):
 
     nrows = np.power(2, d)
     ncols = np.power(N, d)
+    # My computer is running out of memory allocating an array of this size...
+    nrows = 1
     matrix = np.zeros([nrows, ncols])
     idx = -1
     start_time = time.time()
