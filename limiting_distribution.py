@@ -1,8 +1,10 @@
 import numpy as np
 from itertools import product
 import uuid
-#import pickle
+import pickle
+import argparse
 import time
+import sys
 
 def partial_deriv_combs(result, target_length, target, curr_list, curr):
     if curr > target:
@@ -31,6 +33,17 @@ def limiting_distribution(d, j, N):
     idx = -1
     start_time = time.time()
     done = False
+
+    # Memory intensive; might run out of memory here.
+    '''
+    combinations = np.array([n for n in product(range(N), repeat=d)], dtype=np.float64)
+    combinations = np.expand_dims(combinations, axis=1)
+    pdc = np.expand_dims(pdc, axis=0)
+    dn2_2 = np.power(np.pi * combinations, pdc.astype(np.float64))
+    dn2_2 = np.power(dn2_2.prod(axis=-1), 2.).sum(axis=-1)
+    value2 = np.power(np.pi * combinations[:, 0, j], 2.) / dn2_2
+    '''
+
     for i in product(range(2), repeat=d):
         for n in product(range(N), repeat=d):
             idx += 1
@@ -52,26 +65,25 @@ def limiting_distribution(d, j, N):
             value = gamma / dn2
             matrix[idx // ncols, idx % ncols] = value
 
-            #Let us just compute the first two rows... Should be the same?
-            if idx == 2 * ncols - 1:
-                done = True
+            #Let us just compute the first row... Should be the same?
+            if idx == ncols - 1: done = True
+            if done: break
+        if done: break
 
-            if done:
-                break
-        if done:
-            break
+    d = {'d': d, 'j': j, 'N': N, 'matrix': matrix}
+    pickle.dump(d, open(str(uuid.uuid4()) + '.pickle', 'wb'))
+    #np.savetxt(str(uuid.uuid4()) + '.out', matrix)
 
-    print('Saving...')
-    #pickle.dump(matrix, open(str(uuid.uuid4()) + '.pickle', 'wb'))
-    np.savetxt(str(uuid.uuid4()) + '.out', matrix)
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--d', type=int, default=8)
+    parser.add_argument('--j', type=int, default=2)
+    parser.add_argument('--N', type=int, default=4)
+    args = parser.parse_args()
+    print(sys.argv)
+    print(args)
 
-limiting_distribution(8, 2, 4)
+    limiting_distribution(args.d, args.j, args.N)
 
-'''
-pdc = []
-partial_deriv_combs(pdc, 8, 6, [], 0)
-pdc = np.array(pdc)
-for pd in pdc:
-    print(pd)
-print(pdc.shape)
-'''
+if __name__ == '__main__':
+    main()
