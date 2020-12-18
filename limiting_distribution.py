@@ -1,7 +1,7 @@
 import numpy as np
 from itertools import product
 import uuid
-import pickle
+#import pickle
 import time
 
 def partial_deriv_combs(result, target_length, target, curr_list, curr):
@@ -30,6 +30,7 @@ def limiting_distribution(d, j, N):
     matrix = np.zeros([nrows, ncols])
     idx = -1
     start_time = time.time()
+    done = False
     for i in product(range(2), repeat=d):
         for n in product(range(N), repeat=d):
             idx += 1
@@ -37,31 +38,32 @@ def limiting_distribution(d, j, N):
             if idx % 1000 == 0:
                 print('idx:', idx, 'elapsed time:', time.time() - start_time)
 
-            '''
-            if idx == 4500:
-                start = time.time()
-
-            if idx == 5000:
-                end = time.time()
-                print(end - start)
-                exit()
-            '''
-
             if n[j] == 0.:
                 continue
             gamma = np.power(np.pi * n[j], 2.)
 
-            dn2 = 0.
-            for pd in pdc:
-                prod = 1.
-                for l in range(len(pd)):
-                    if n[l] != 0:
-                        prod *= np.power(np.pi * float(n[l]), float(pd[l]))
-                dn2 += prod * prod
+
+            n_np = np.array(n, dtype=np.float64)
+
+            dn2 = np.power(np.pi * n_np, pdc.astype(np.float64))
+            dn2 = dn2.prod(axis=-1)
+            dn2 = np.power(dn2, 2.).sum()
+
             value = gamma / dn2
             matrix[idx // ncols, idx % ncols] = value
 
-    pickle.dump(matrix, open(str(uuid.uuid4()) + '.pickle', 'wb'))
+            #Let us just compute the first two rows... Should be the same?
+            if idx == 2 * ncols - 1:
+                done = True
+
+            if done:
+                break
+        if done:
+            break
+
+    print('Saving...')
+    #pickle.dump(matrix, open(str(uuid.uuid4()) + '.pickle', 'wb'))
+    np.savetxt(str(uuid.uuid4()) + '.out', matrix)
 
 limiting_distribution(8, 2, 4)
 
