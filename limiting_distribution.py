@@ -20,6 +20,7 @@ def partial_deriv_combs(result, target_length, target, curr_list, curr):
         curr_list.pop()
 
 def limiting_distribution(d, j, N):
+    filename = './pickle_files/' + str(uuid.uuid4()) + '_' + str(d) + str(j) + str(N) + '.pickle'
     assert 1 <= j and j <= d
     j -= 1
     k = int(np.floor(float(d) / 2.)) + 2
@@ -33,8 +34,10 @@ def limiting_distribution(d, j, N):
     nrows = 1
     matrix = np.zeros([nrows, ncols])
     idx = -1
-    start_time = time.time()
+    dn2s = []
+    gammas = []
     done = False
+    start_time = time.time()
 
     # Memory intensive; might run out of memory here.
     '''
@@ -53,8 +56,8 @@ def limiting_distribution(d, j, N):
             if idx % 1000 == 0:
                 print('idx:', idx, 'elapsed time:', time.time() - start_time)
 
-            if n[j] == 0.:
-                continue
+            #if n[j] == 0.:
+                #continue
             gamma = np.power(np.pi * n[j], 2.)
 
 
@@ -64,6 +67,9 @@ def limiting_distribution(d, j, N):
             dn2 = dn2.prod(axis=-1)
             dn2 = np.power(dn2, 2.).sum()
 
+            gammas.append(gamma)
+            dn2s.append(dn2)
+
             value = gamma / dn2
             matrix[idx // ncols, idx % ncols] = value
 
@@ -72,8 +78,12 @@ def limiting_distribution(d, j, N):
             if done: break
         if done: break
 
-    d = {'d': d, 'j': j, 'N': N, 'matrix': matrix}
-    pickle.dump(d, open(str(uuid.uuid4()) + '.pickle', 'wb'))
+    gammas = np.array(gammas)
+    dn2s = np.array(dn2s)
+    d = {'d': d, 'j': j + 1, 'N': N, 'matrix': matrix, 'gammas': gammas, 'dn2s': dn2s}
+    pickle.dump(d, open(filename, 'wb'))
+
+
     #np.savetxt(str(uuid.uuid4()) + '.out', matrix)
 
 def main():
