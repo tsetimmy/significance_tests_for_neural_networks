@@ -9,8 +9,9 @@ import uuid
 def generate_samples_from_limiting_dist(d, N, j, n_samples=10000):
     directory = './pickle_files'
     for filename in os.listdir(directory):
-        if filename.endswith(str(d) + str(N) + '.pickle'):
+        if filename.endswith(str(d) + str(N) + '.pickle') and not 'samples' in filename:
             data = pickle.load(open(os.path.join(directory, filename), 'rb'))
+            break
         else:
             continue
 
@@ -20,11 +21,11 @@ def generate_samples_from_limiting_dist(d, N, j, n_samples=10000):
     dn2s = data['dn2s']
 
     samples = []
-    for _ in tqdm(range(n_samples)):
+    for _ in range(n_samples):
 
         num = 0.
         denom = 0.
-        for _ in range(2**d):
+        for _ in tqdm(range(2**d)):
             chisquares = np.random.chisquare(df=1, size=N**d)
 
             num += (chisquares * gammas / np.square(dn2s)).sum()
