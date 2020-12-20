@@ -17,6 +17,7 @@ parser.add_argument('--n_validation', type=int, default=10000)
 parser.add_argument('--n_test', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--max_epochs', type=int, default=150)
+parser.add_argument('--n_aux_vars', type=int, default=2)
 args = parser.parse_args()
 print(sys.argv)
 print(args)
@@ -54,7 +55,7 @@ def run_optimization(x, y):
     gradients = g.gradient(loss, trainable_variables)
     optimizer.apply_gradients(zip(gradients, trainable_variables))
 
-def generate_data(n, loc, scale):
+def generate_data(n, loc, scale, n_aux_vars):
     epsilon = np.random.normal(loc=loc, scale=scale, size=n)
     X = np.random.uniform(low=-1., high=1., size=[n, 8])
     Y = 8. \
@@ -65,6 +66,10 @@ def generate_data(n, loc, scale):
        + .1 * X[:, 6] \
        + epsilon
     Y = np.expand_dims(Y, axis=-1)
+
+    if n_aux_vars > 0:
+        X_aux = np.random.uniform(low=-1., high=1., size=[n, n_aux_vars])
+        X = np.concatenate([X, X_aux], axis=1)
     assert len(Y.shape) == 2
     return X, Y
 
@@ -77,11 +82,13 @@ n_test = args.n_test
 batch_size = args.batch_size
 max_epochs = args.max_epochs
 
+n_aux_vars = args.n_aux_vars
+
 max_steps = int(n_train / batch_size) * max_epochs
 
-X_train, Y_train = generate_data(n_train, loc_noise, scale_noise)
-X_validation, Y_validation = generate_data(n_validation, loc_noise, scale_noise)
-X_test, Y_test = generate_data(n_test, loc_noise, scale_noise)
+X_train, Y_train = generate_data(n_train, loc_noise, scale_noise, n_aux_vars)
+X_validation, Y_validation = generate_data(n_validation, loc_noise, scale_noise, n_aux_vars)
+X_test, Y_test = generate_data(n_test, loc_noise, scale_noise, n_aux_vars)
 
 train_data = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
 train_data = train_data.repeat().batch(batch_size)
