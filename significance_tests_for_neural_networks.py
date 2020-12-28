@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.keras import Model, layers
 tf.keras.backend.set_floatx('float64')
 
+from tqdm import tqdm
 import argparse
 import sys
 import os
@@ -18,9 +19,30 @@ parser.add_argument('--n_test', type=int, default=10000)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--max_epochs', type=int, default=150)
 parser.add_argument('--n_aux_vars', type=int, default=2)
+
+
+parser.add_argument('--discretization_approach', default=False, action='store_true')
+parser.add_argument('--limiting_normal_dim', type=int, default=500)
+parser.add_argument('--n_samples', type=int, default=10000)
+
 args = parser.parse_args()
 print(sys.argv)
 print(args)
+
+# Same as the ANN class below, but with glorot_normal initialization...
+# This class is used when generating the null limiting distribution by the discretization approach.
+# The same class ought to be used throughout, but I can change this later.
+class ANN_null(Model):
+    def __init__(self, Y_dim):
+        super(ANN_null, self).__init__()
+        self.hidden = layers.Dense(25, activation=tf.nn.sigmoid,
+                                   kernel_initializer='glorot_normal',
+                                   bias_initializer='glorot_normal')
+        self.out = layers.Dense(Y_dim)
+
+    def call(self, X):
+        h = self.hidden(X)
+        return self.out(h)
 
 class ANN(Model):
     def __init__(self, Y_dim):
@@ -82,7 +104,12 @@ n_test = args.n_test
 batch_size = args.batch_size
 max_epochs = args.max_epochs
 
-n_aux_vars = args.n_aux_vars
+if args.discretization_approach:
+    print(r'Discretization approach is used, "n_aux_vars" is set to 0.')
+    n_aux_vars = 0
+else:
+    print('Discretization approach is not used, arguments "discretization_approach" and "n_samples" are ignored.')
+    n_aux_vars = args.n_aux_vars
 
 max_steps = int(n_train / batch_size) * max_epochs
 
@@ -121,3 +148,24 @@ test_statistic = np.square(df_dx.numpy()).mean(axis=0)
 print('Test statistic:')
 print(test_statistic)
 #https://github.com/aymericdamien/TensorFlow-Examples/blob/master/tensorflow_v2/notebooks/3_NeuralNetworks/neural_network.ipynb
+
+if not args.discretization_approach:
+    exit()
+
+limiting_normal_dim = args.limiting_normal_dim
+n_samples = args.n_samples
+
+for i in tqdm(range(n_samples)):
+    anns = [ANN_null(Y_dim=1) for _ in range(limiting_normal_dim)]
+    cov = np.array([np.square(ann(input_var).numpy().squeeze()).mean() for ann in anns])
+    samples = np.random.multivariate_normal(mean=np.zeros_like(cov), cov=np.diag(cov))
+    argmax = np.argmax(samples)
+    ann_null_max = anns[argmax]
+
+    with tf.GradientTape() as g:
+        g.watch(input_var)
+        pred_null = ann_null_max(input_var)
+    df_dx_null = g.gradient(pred_null, input_var)
+    test_statistic_null = np.square(df_dx_null.numpy()).mean(axis=0)
+    print('%d of %d. Test statistic null:' %(i, n_samples))
+    print(test_statistic_null)
