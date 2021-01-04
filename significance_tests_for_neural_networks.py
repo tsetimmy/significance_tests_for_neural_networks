@@ -155,7 +155,7 @@ if not args.discretization_approach:
 limiting_normal_dim = args.limiting_normal_dim
 n_samples = args.n_samples
 
-for i in tqdm(range(n_samples)):
+for i in range(n_samples):
     anns = [ANN_null(Y_dim=1) for _ in range(limiting_normal_dim)]
     cov = np.array([np.square(ann(input_var).numpy().squeeze()).mean() for ann in anns])
     samples = np.random.multivariate_normal(mean=np.zeros_like(cov), cov=np.diag(cov))
