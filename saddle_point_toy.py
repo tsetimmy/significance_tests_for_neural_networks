@@ -42,9 +42,8 @@ def main():
     plt.grid()
     #plt.show()
 
-
     CDF = []
-    W = np.linspace(8., 14., 1000)
+    W = np.linspace(samples.min() - .1, samples.max() + .1, 1000)
     for w in W:
         A = Bsquare * gamma / np.square(dnsquare) - w / dnsquare
         poles = .5 / A
@@ -80,10 +79,12 @@ def main():
         cdf = stats.norm.cdf(r_star)
         CDF.append(cdf)
     CDF = np.array(CDF)
-    plt.plot(W, CDF, color='orange')
+    plt.plot(W, CDF, color='orange', label='Saddlepoint approximation')
+    plt.legend()
+    plt.xlabel('w')
+    plt.ylabel('CDF(w) (Empirical CDF)')
+    plt.title('B^2 = %f' % Bsquare)
     plt.show()
     
-
-
 if __name__ == '__main__':
     main()
