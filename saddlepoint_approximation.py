@@ -10,11 +10,24 @@ def saddlepoint_approximation(Bsquare, gamma, dnsquare, w):
     poles = .5 / A
     upper_lim = np.inf
     lower_lim = -np.inf
-    for j in range(len(A)):
-        if A[j] > 0.:
-            upper_lim = np.minimum(upper_lim, poles[j])
-        elif A[j] < 0.:
-            lower_lim = np.maximum(lower_lim, poles[j])
+
+    assert (A == 0.).any() == False
+    pos = np.where(A > 0.)
+    if pos[0].size != 0:
+        upper_lim = np.min(poles[pos])
+    neg = np.where(A < 0.)
+    if neg[0].size != 0:
+        lower_lim = np.max(poles[neg])
+
+#    upper_lim2 = np.inf
+#    lower_lim2 = -np.inf
+#    for j in range(len(A)):
+#        if A[j] > 0.:
+#            upper_lim2 = np.minimum(upper_lim2, poles[j])
+#        elif A[j] < 0.:
+#            lower_lim2 = np.maximum(lower_lim2, poles[j])
+#    assert upper_lim == upper_lim2
+#    assert lower_lim == lower_lim2
 
     max_iters = 1000
     eps = 1e-15
@@ -90,7 +103,6 @@ def toy():
     plt.title('B^2 = %f' % Bsquare)
     plt.show()
 
-
 def chisquare_mixture():
     parser = argparse.ArgumentParser()
     parser.add_argument('--d', type=int, default=8)
@@ -144,8 +156,6 @@ def chisquare_mixture():
 #    plt.ylabel('CDF(w) (Empirical CDF)')
 #    plt.title('B^2 = %f' % Bsquare)
 #    plt.show()
-
-
 
 if __name__ == '__main__':
     #toy()
