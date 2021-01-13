@@ -8,7 +8,7 @@ from tqdm import tqdm
 import pickle
 import uuid
 
-def limiting_distribution2(d, j, N, lower, upper):
+def limiting_distribution2(d, j, N, lower, upper, save=True):
     assert j >= 1 and j <= d
     filename = str(uuid.uuid4()) + '__limiting_distribution2__d=' + str(d) + '__N=' + str(N) + '__lower=' + str(lower) + '__upper=' + str(upper) + '.pickle'
     i = j - 1
@@ -49,7 +49,10 @@ def limiting_distribution2(d, j, N, lower, upper):
          'j': j,
          'lower': lower,
          'upper': upper}
-    pickle.dump(d, open(filename, 'wb'))
+    if save:
+        pickle.dump(d, open(filename, 'wb'))
+    else:
+        return d
 
 def calculate_partitions(d, N, threads):
     chunks = int(np.ceil(float((2 * N + 1)**d) / float(threads)))
