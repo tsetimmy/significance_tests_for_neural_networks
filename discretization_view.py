@@ -10,7 +10,7 @@ def accept_reject(statistic, null, alpha=.05):
     reject = 1. if float(total) / float(len(null)) <= alpha else 0.
     return reject
 
-filenames = glob.glob('./pickle_files/2021_01_04/*.out')
+filenames = glob.glob('./pickle_files/discretization/2021_01_04/*.out')
 
 result = []
 for filename in filenames:
