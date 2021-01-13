@@ -3,7 +3,10 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse
+import pickle
 import sys
+import uuid
+import re
 
 def saddlepoint_approximation(Bsquare, gamma, dnsquare, w):
     A = Bsquare * gamma / np.square(dnsquare) - w / dnsquare
@@ -107,12 +110,10 @@ def chisquare_mixture():
     parser = argparse.ArgumentParser()
     parser.add_argument('--d', type=int, default=8)
     parser.add_argument('--N', type=int, default=4)
-
     args = parser.parse_args()
     print(sys.argv)
     print(args)
 
-    import pickle
     from limiting_distribution2 import limiting_distribution2
     from tqdm import tqdm
 
@@ -157,6 +158,37 @@ def chisquare_mixture():
 #    plt.title('B^2 = %f' % Bsquare)
 #    plt.show()
 
+def chisquare_mixture2():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--logspace_start', type=float, default=.1)
+    parser.add_argument('--logspace_stop', type=float, default=15.)
+    parser.add_argument('--logspace_num', type=int, default=50)
+    parser.add_argument('--logspace_base', type=float, default=10.)
+    parser.add_argument('--logspace_idx', type=int, default=0)
+    args = parser.parse_args()
+    print(sys.argv)
+    print(args)
+
+    # Load the limiting distribution values.
+    d = pickle.load(open('./pickle_files/db737651-6aba-4693-82a6-4ec0444aa845__limiting_distribution2__d=8__N=4__lower=-inf__upper=inf.pickle', 'rb'))
+    gammas = d['gammas']
+    dn2s = d['dn2s']
+    assert len(gammas) == len(dn2s)
+
+    # Load the data trials.
+    data = pickle.load(open('./pickle_files/250_trials_n=8.pickle', 'rb'))
+
+    Bsquare = np.logspace(start=args.logspace_start, stop=args.logspace_stop, num=args.logspace_num, base=args.logspace_base)[args.logspace_idx]
+
+    results = np.ones_like(data) * -1.
+    for i in range(len(data)):
+        for j in range(len(data[i])):
+            results[i, j] = saddlepoint_approximation(Bsquare, gammas, dn2s, data[i, j])
+
+    filename = '{0}__{1}.pickle'.format(str(uuid.uuid4()), str(args.__dict__))
+    pickle.dump(results, open(filename, 'wb'))
+
 if __name__ == '__main__':
     #toy()
-    chisquare_mixture()
+    #chisquare_mixture()
+    chisquare_mixture2()
