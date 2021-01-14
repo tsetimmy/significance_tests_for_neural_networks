@@ -165,7 +165,6 @@ def chisquare_mixture2():
     parser.add_argument('--logspace_num', type=int, default=50)
     parser.add_argument('--logspace_base', type=float, default=10.)
     parser.add_argument('--logspace_idx', type=int, default=0)
-    parser.add_argument('--data_idx', type=int, default=0)
     args = parser.parse_args()
     print(sys.argv)
     print(args)
@@ -178,19 +177,13 @@ def chisquare_mixture2():
 
     # Load the data trials.
     data = pickle.load(open('./pickle_files/250_trials_n=8.pickle', 'rb'))
-    data = data[args.data_idx]
 
     Bsquare = np.logspace(start=args.logspace_start, stop=args.logspace_stop, num=args.logspace_num, base=args.logspace_base)[args.logspace_idx]
 
     results = np.ones_like(data) * -1.
     for i in range(len(data)):
-        results[i] = saddlepoint_approximation(Bsquare, gammas, dn2s, data[i])
-
-    '''
-    for i in range(len(data)):
         for j in range(len(data[i])):
             results[i, j] = saddlepoint_approximation(Bsquare, gammas, dn2s, data[i, j])
-    '''
 
     filename = '{0}__{1}.pickle'.format(str(uuid.uuid4()), str(args.__dict__))
     pickle.dump(results, open(filename, 'wb'))
