@@ -2,7 +2,7 @@
 import numpy as np
 import pickle
 
-def estimate_Bsquare():
+def estimate_Bsquare(method='mean'):
     d = pickle.load(open('./pickle_files/trials=150__n=8__n_aux_vars=1.pickle', 'rb'))
 
     readme = d['readme']
@@ -19,7 +19,13 @@ def estimate_Bsquare():
                         7.61356871e-12, 6.54262833e-11]
     samples_lim_dist = np.array(samples_lim_dist)
 
-    Bsquare_estimate = aux_statistics / samples_lim_dist
+    if method == 'mean':
+        Bsquare_estimate = aux_statistics.mean() / samples_lim_dist.mean()
+    elif method == 'max':
+        Bsquare_estimate = np.max(aux_statistics) / samples_lim_dist.mean()
+    else:
+        raise Exception('Unrecognized method:', method)
+
     return Bsquare_estimate
 
 if __name__ == '__main__':
