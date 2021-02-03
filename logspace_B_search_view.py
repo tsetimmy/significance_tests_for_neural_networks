@@ -40,15 +40,15 @@ def main():
     results = rejections.mean(axis=1)
 
     for i in range(results.shape[-1]):
-        plt.figure()
+        #plt.figure()
         print(results[:, i])
-        plt.plot(Bsquare, results[:, i], marker='x')
-        plt.grid()
-        plt.xlabel('B^2')
-        plt.ylabel('Mean Rejections (250 trials)')
-        plt.title('d = %i' % (i + 1))
-        #plt.legend()
-        #plt.savefig(str(i + 1) + '.png')
+        plt.plot(np.log(Bsquare), results[:, i], marker='x', label='dim = %i' % (i + 1))
+    plt.grid()
+    plt.legend()
+    plt.xlabel('log(B^2)')
+    plt.ylabel('Mean Rejections (250 trials)')
+    #plt.title('d = %i' % (i + 1))
+    #plt.savefig(str(i + 1) + '.png')
     plt.show()
 
 if __name__ == '__main__':
